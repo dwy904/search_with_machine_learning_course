@@ -29,9 +29,33 @@ def process_filters(filters_input):
         #TODO: IMPLEMENT AND SET filters, display_filters and applied_filters.
         # filters get used in create_query below.  display_filters gets used by display_filters.jinja2 and applied_filters gets used by aggregations.jinja2 (and any other links that would execute a search.)
         if type == "range":
-            pass
+            agg_key = request.args.get(filter + ".key")
+            agg_from = request.args.get(filter + ".from")
+            agg_to = request.args.get(filter + ".to")
+            applied_filters += f"&filter.name={filter}&{filter}.type={type}&{filter}.displayName={display_name}&{filter}.key={agg_key}&{filter}.from={agg_from}&{filter}.to={agg_to}"
+            range_template = \
+                {
+                "range": {
+                    "regularPrice": {
+                        "gte": agg_from,
+                        "lte": agg_to
+                        }
+                    }
+                }
+            filters.append(range_template)
         elif type == "terms":
-            pass #TODO: IMPLEMENT
+            agg_key = request.args.get(filter + ".key")
+            filter_name = request.args.get(filter + ".name")
+            terms_template = \
+                {
+                "term": {
+                    filter_name:  agg_key
+                    }
+                }
+            filters.append(terms_template)
+            applied_filters += f"&filter.name={filter}&{filter}.type={type}&{filter}.displayName={display_name}&{filter}.key={agg_key}"
+    
+        display_filters.append(display_name)
     print("Filters: {}".format(filters))
 
     return filters, display_filters, applied_filters
@@ -74,7 +98,7 @@ def query():
         query_obj = create_query("*", [], sort, sortDir)
 
     print("query obj: {}".format(query_obj))
-    response = None   # TODO: Replace me with an appropriate call to OpenSearch
+    response = opensearch.search(body=query_obj, index='bbuy_products')   # TODO: Replace me with an appropriate call to OpenSearch
     # Postprocess results here if you so desire
 
     #print(response)
@@ -91,10 +115,50 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     query_obj = {
         'size': 10,
         "query": {
-            "match_all": {} # Replace me with a query that both searches and filters
+            "multi_match": {
+                "query": user_query,
+                "fields": ["name", "shortDescription", "manufacturer"]
+            }
         },
         "aggs": {
-            #TODO: FILL ME IN
+            "department": {
+                "terms": {
+                    "field": "department.keyword",
+                    "size": 5
+                }
+            },
+            "regularPrice": {
+                "range": {
+                    "field": "regularPrice",
+                    "ranges": [
+                        {
+                            "key": "$", 
+                            "from": 0, 
+                            "to": 100
+                        },
+                        {
+                            "key": "$$", 
+                            "from": 100,
+                            "to": 200
+                        },
+                        {
+                            "key": "$$$", 
+                            "from": 200, 
+                            "to": 300
+                        },
+                        {
+                            "key": "$$$$", 
+                            "from": 300,
+                            "to": 400
+                        }
+                    ]
+                }
+            },
+            "missing_images": {
+                "missing": {
+                        "field": "image.keyword"
+                    }
+                }
+            }
         }
-    }
     return query_obj

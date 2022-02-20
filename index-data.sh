@@ -1,3 +1,9 @@
+echo "Killing previous logstash running instance"
+kill -9 $(pgrep -f 'logstash')
+
+echo "Deleting indices"
+curl -k -X DELETE -u admin  "https://localhost:9200/bb*" -H 'Content-Type: application/json'
+
 usage()
 {
   echo "Usage: $0 [-p /path/to/bbuy/products/field/mappings] [ -q /path/to/bbuy/queries/field/mappings ] [ -b /path/to/bbuy/products/logstash/conf ] [ -e /path/to/bbuy/queries/logstash/conf ] [ -l /path/to/logstash/home ]"
