@@ -3,10 +3,20 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import random
+from nltk.stem import *
+import re
 # Directory for product data
 
 def transform_name(product_name):
-    # IMPLEMENT
+    # lower case
+    product_name = product_name.lower()
+    # remove punctuation
+    product_name = re.sub(r'[^\w\s]','', product_name)
+    # remove extra white space
+    product_name = " ".join(product_name.split())
+    # stemming
+    stemmer = PorterStemmer()
+    product_name = ' '.join([stemmer.stem(word) for word in product_name.split()])
     return product_name
 
 directory = r'/workspace/datasets/product_data/products/'

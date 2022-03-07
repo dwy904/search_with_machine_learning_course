@@ -2,6 +2,9 @@ import os
 import xml.etree.ElementTree as ET
 import argparse
 from pathlib import Path
+import random
+from nltk.stem import *
+import re
 
 
 directory = r'/workspace/datasets/product_data/products/'
@@ -26,7 +29,15 @@ if args.input:
 sample_rate = args.sample_rate
 
 def transform_training_data(name):
-    # IMPLEMENT
+    # lower case
+    name = name.lower()
+    # remove punctuation
+    name = re.sub(r'[^\w\s]','', name)
+    # remove extra white space
+    name = " ".join(name.split())
+    # stemming
+    stemmer = PorterStemmer()
+    name = ' '.join([stemmer.stem(word) for word in name.split()])
     return name.replace('\n', ' ')
 
 # Directory for product data
