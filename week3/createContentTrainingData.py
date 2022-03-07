@@ -2,6 +2,7 @@ import argparse
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import random
 # Directory for product data
 
 def transform_name(product_name):
@@ -38,6 +39,7 @@ if args.input:
 # IMPLEMENT:  Track the number of items in each category and only output if above the min and below the max
 min_product_names = args.min_product_names
 max_product_names = args.max_product_names
+max_input = args.max_input
 sample_rate = args.sample_rate
 
 total_input = 0
